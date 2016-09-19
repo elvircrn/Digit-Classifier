@@ -41,10 +41,15 @@ auto Network::FeedForward(Network::DMatrix &a)
 	return a;
 }
 
-void Network::SGD(const DataSet &dataSet, int epochs, double learningRate)
+void Network::SGD(DataSet &dataSet, int epochs, double learningRate)
 {
 	for (int t = 0; t < epochs; t++)
 	{
-		
+		dataSet.Shuffle();
 	}
+}
+
+void Network::UpdateMiniBatch(DataSet::Data batch, int batchSize, double)
+{
+	
 }

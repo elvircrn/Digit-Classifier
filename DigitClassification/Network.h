@@ -1,6 +1,7 @@
 #include <Eigen/Core>
 
 #include "DataSet.h"
+#include <tuple>
 
 #pragma once
 class Network
@@ -9,7 +10,7 @@ private:
 
 protected:
 	int _numLayers;
-
+	
 public:
 	typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> DMatrix;
 
@@ -23,6 +24,7 @@ public:
 
 	int GetNumLayers();
 	auto FeedForward(Network::DMatrix &a);
-	void SGD(const DataSet&, int, double);
+	void SGD(DataSet&, int, double);
+	void UpdateMiniBatch(DataSet::Data, int, double);
 };
 

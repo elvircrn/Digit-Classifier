@@ -1,7 +1,6 @@
 #pragma once
 
-#include <vector>
-#include <string>
+#include "stdafx.h"
 
 class DataSet
 {
@@ -19,6 +18,8 @@ protected:
 	void LoadLabels(std::string);
 
 public:
+	typedef std::pair<unsigned char*, unsigned char*> Data;
+
 	static const std::string TRAINING_LABELS;
 	static const std::string TRAINING_IMAGES;
 
@@ -37,4 +38,7 @@ public:
 
 	void Load(std::string, std::string, int);
 	unsigned char GetPixel(int, int, int);
+	void Shuffle();
+
+	DataSet::Data operator[] (const int index);
 };

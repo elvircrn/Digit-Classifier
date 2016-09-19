@@ -174,3 +174,14 @@ unsigned char DataSet::GetPixel(int img, int h, int w)
 {
 	return _data[img * (GetImageHeight() * GetImageWidth()) + h * GetImageWidth() + w];
 }
+
+void DataSet::Shuffle()
+{
+	//TODO: Implement
+}
+
+DataSet::Data DataSet::operator[](const int index)
+{
+	return DataSet::Data(_data + (index * GetImageWidth() * GetImageHeight()),
+						 _labels + index);
+}
