@@ -49,7 +49,7 @@ void Network::SGD(DataSet &dataSet, int epochs, double learningRate)
 	}
 }
 
-void Network::UpdateMiniBatch(DataSet::Data batch, int batchSize, double)
+void Network::UpdateMiniBatch(DataSet::Data batch, int batchSize, double learningRate)
 {
 	
 }
