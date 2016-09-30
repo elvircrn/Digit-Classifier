@@ -31,14 +31,14 @@ public:
 	void SetImageWidth(int);
 	void SetImageHeight(int);
 	void SetImageCount(int);
-	int GetImageCount();
-	int GetImageHeight();
-	int GetImageWidth();
+	int ImageCount() const;
+	int ImageHeight() const;
+	int ImageWidth() const;
 	#pragma endregion
 
 	void Load(std::string, std::string, int);
-	unsigned char GetPixel(int, int, int);
+	unsigned char GetPixel(int, int, int) const;
 	void Shuffle();
 
-	DataSet::Data operator[] (const int index);
+	DataSet::Data operator[] (const int index) const;
 };

@@ -22,9 +22,13 @@ public:
 	Network(const std::vector<int> &);
 	~Network();
 
-	int GetNumLayers();
+	int NumLayers();
 	auto FeedForward(Network::DMatrix &a);
 	void SGD(DataSet&, int, double);
-	void UpdateMiniBatch(DataSet::Data, int, double);
+	void UpdateMiniBatch(const DataSet&, int, int, double);
+	std::pair<Eigen::Matrix<Eigen::Matrix<double, Eigen::Dynamic, 1>, 1, Eigen::Dynamic>,
+		Eigen::Matrix<Network::DMatrix, Eigen::Dynamic, Eigen::Dynamic>> Backprop(unsigned char*, unsigned char);
+
+
 };
 

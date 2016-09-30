@@ -59,7 +59,7 @@ void DataSet::LoadImages(std::string imagesLocation, int numberOfImages)
 
 		_data = new unsigned char[_imgCount * _imgHeight * _imgWidth];
 
-		for (int i = 0; i < GetImageCount(); i++)
+		for (int i = 0; i < ImageCount(); i++)
 		{
 			for (int r = 0; r < _imgHeight; r++)
 			{
@@ -67,7 +67,7 @@ void DataSet::LoadImages(std::string imagesLocation, int numberOfImages)
 				{
 					unsigned char temp = 0;
 					file.read((char*)&temp, sizeof(temp));
-					_data[i * (GetImageHeight() * GetImageWidth()) + r * GetImageWidth() + c] = (unsigned char)temp;
+					_data[i * (ImageHeight() * ImageWidth()) + r * ImageWidth() + c] = (unsigned char)temp;
 				}
 			}
 		}
@@ -94,10 +94,10 @@ void DataSet::LoadLabels(std::string labelsLocation)
 
 		file.read((char*)&actualCount, sizeof(actualCount));
 
-		_labels = new unsigned char[GetImageCount()];
+		_labels = new unsigned char[ImageCount()];
 
 		unsigned char temp;
-		for (int i = 0; i < GetImageCount(); i++)
+		for (int i = 0; i < ImageCount(); i++)
 		{
 			file.read((char*)&temp, sizeof(temp));
 			_data[i] = (unsigned char)temp;
@@ -148,17 +148,17 @@ void DataSet::SetImageCount(int imgCount)
 	_imgCount = imgCount;
 }
 
-int DataSet::GetImageCount()
+int DataSet::ImageCount() const
 {
 	return _imgCount;
 }
 
-int DataSet::GetImageHeight()
+int DataSet::ImageHeight() const
 {
 	return _imgHeight;
 }
 
-int DataSet::GetImageWidth()
+int DataSet::ImageWidth() const
 {
 	return _imgWidth;
 }
@@ -170,9 +170,9 @@ void DataSet::Load(std::string imagesLocation, std::string labelsLocation, int n
 	LoadLabels(labelsLocation);
 }
 
-unsigned char DataSet::GetPixel(int img, int h, int w)
+unsigned char DataSet::GetPixel(int img, int h, int w) const
 {
-	return _data[img * (GetImageHeight() * GetImageWidth()) + h * GetImageWidth() + w];
+	return _data[img * (ImageHeight() * ImageWidth()) + h * ImageWidth() + w];
 }
 
 void DataSet::Shuffle()
@@ -180,8 +180,8 @@ void DataSet::Shuffle()
 	//TODO: Implement
 }
 
-DataSet::Data DataSet::operator[](const int index)
+DataSet::Data DataSet::operator[](const int index) const
 {
-	return DataSet::Data(_data + (index * GetImageWidth() * GetImageHeight()),
+	return DataSet::Data(_data + (index * ImageWidth() * ImageHeight()),
 						 _labels + index);
 }
