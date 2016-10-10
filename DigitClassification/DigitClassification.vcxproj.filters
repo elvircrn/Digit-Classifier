@@ -61,9 +61,9 @@
     <None Include="train-images.idx3-ubyte">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="packages.config" />
     <None Include="train-labels.idx1-ubyte">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

@@ -19,3 +19,21 @@ Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& Math::Sigmoid(const Eigen
 
 	return x;
 }
+
+double Math::SigmoidPrime(double x)
+{
+	double sigmoid = Sigmoid(x);
+	return sigmoid * (1 - sigmoid);
+}
+
+Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>& Math::SigmoidPrime(const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> &m)
+{
+	auto x = m;
+
+	for (int i = 0; i < m.rows(); i++)
+		for (int j = 0; j < m.cols(); j++)
+			x(i, j) = Math::SigmoidPrime(m(i, j));
+
+	return x;
+}
+

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+#include <Eigen/Core>
 #include "DataSet.h"
 
 const std::string DataSet::TRAINING_IMAGES = "train-images.idx3-ubyte";
@@ -163,6 +164,11 @@ int DataSet::ImageWidth() const
 	return _imgWidth;
 }
 
+int DataSet::DataSize() const
+{
+	return _dataSize;
+}
+
 void DataSet::Load(std::string imagesLocation, std::string labelsLocation, int numberOfImages)
 {
 	_dispose();
@@ -180,13 +186,15 @@ void DataSet::Shuffle()
 	//TODO: Implement
 }
 
-int DataSet::DataSize() const
-{
-	return _dataSize;
-}
-
 DataSet::Data DataSet::operator[](const int index) const
 {
 	return DataSet::Data(_data + (index * ImageWidth() * ImageHeight()),
 						 _labels + index);
+}
+
+Eigen::Matrix<double, Eigen::Dynamic, 1> DataSet::ToVector(unsigned char x) const
+{
+	auto result = Eigen::Matrix<double, Eigen::Dynamic, 1>(10, 1);
+	result(x) = 1;
+	return result;
 }

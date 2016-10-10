@@ -77,12 +77,7 @@ void Network::UpdateMiniBatch(const DataSet &batch, int batchStart, int batchSiz
 	}
 }
 
-/*
-	Hej kafano necu vise drug mi nisi bila
-	Ta zena mi bol zadala ti je vecom ucinila
-*/
-
-Network::DVectorV costDerivative(Network::DVectorV networkOut,
+Network::DVectorV CostDerivative(Network::DVectorV networkOut,
 								 Network::DVectorV expectedOut)
 {																
 	return networkOut - expectedOut;
@@ -92,11 +87,13 @@ std::pair<Eigen::Matrix<Network::DVectorV, Eigen::Dynamic, 1>, Network::DTensor>
 	Network::Backprop(const DataSet &batch, unsigned char* input, unsigned char output)
 {
 	auto nablaB = Eigen::Matrix<Network::DVectorV, 1, Eigen::Dynamic>();
-	auto nablaW = Network::DTensor();
+	auto nablaW = std::vector<Network::DVectorV>(NumLayers());
 
 	Network::DVectorV activation = Network::DVectorV();
+	Network::DVectorV z = Network::DVectorV();
 
 	std::vector<Network::DVectorV> activations;
+	std::vector<Network::DVectorV> zs;
 
 	activation.resize(batch.DataSize());
 
@@ -106,17 +103,19 @@ std::pair<Eigen::Matrix<Network::DVectorV, Eigen::Dynamic, 1>, Network::DTensor>
 	activations.push_back(activation);
 
 	for (int i = 1; i < NumLayers(); i++)
+	{
 		activations.push_back(weights(i) * activations[i - 1] + biases(i));
+	}
+
+	auto delta = CostDerivative(activations.back(), batch.ToVector(output)) *
+		Math::SigmoidPrime(activations [NumLayers() - 1]);
 
 	/* feedforward */
 
 	for (int i = NumLayers() - 1; i > -1; i--)
 	{
-		//nablaW(i) = activations(i - 1) * []
+		int asd = 2;
 	}
 	
 	return std::make_pair(biases, weights);
 }
-
-
-

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "stdafx.h"
+#include <Eigen/Core>
 
 class DataSet
 {
@@ -27,7 +28,7 @@ public:
 	DataSet(int);
 	~DataSet();
 
-	#pragma region Getters And Setters
+#pragma region Getters And Setters
 	void SetImageWidth(int);
 	void SetImageHeight(int);
 	void SetImageCount(int);
@@ -35,11 +36,12 @@ public:
 	int ImageHeight() const;
 	int ImageWidth() const;
 	int DataSize() const;
-	#pragma endregion
+#pragma endregion
 
 	void Load(std::string, std::string, int);
 	unsigned char GetPixel(int, int, int) const;
 	void Shuffle();
+	Eigen::Matrix<double, Eigen::Dynamic, 1> ToVector(unsigned char) const;
 
 	DataSet::Data operator[] (const int index) const;
 };

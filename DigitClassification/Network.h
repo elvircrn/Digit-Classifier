@@ -3,6 +3,7 @@
 #include "DataSet.h"
 #include <tuple>
 #include <functional>
+#include <Eigen/Core>
 
 #pragma once
 class Network
