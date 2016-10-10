@@ -180,6 +180,11 @@ void DataSet::Shuffle()
 	//TODO: Implement
 }
 
+int DataSet::DataSize() const
+{
+	return _dataSize;
+}
+
 DataSet::Data DataSet::operator[](const int index) const
 {
 	return DataSet::Data(_data + (index * ImageWidth() * ImageHeight()),

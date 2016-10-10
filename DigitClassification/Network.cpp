@@ -64,7 +64,7 @@ void Network::UpdateMiniBatch(const DataSet &batch, int batchStart, int batchSiz
 	{
 		std::pair<Eigen::Matrix<Eigen::Matrix<double, Eigen::Dynamic, 1>, 1, Eigen::Dynamic>,
 			Eigen::Matrix<Network::DMatrix, Eigen::Dynamic, Eigen::Dynamic>> 
-			back = Backprop(batch[i].first, *batch[i].second);
+			back = Backprop(batch, batch[i].first, *batch[i].second);
 
 		nabla_b += back.first;
 		nabla_w += back.second;
@@ -77,14 +77,46 @@ void Network::UpdateMiniBatch(const DataSet &batch, int batchStart, int batchSiz
 	}
 }
 
+/*
+	Hej kafano necu vise drug mi nisi bila
+	Ta zena mi bol zadala ti je vecom ucinila
+*/
 
-std::pair<Eigen::Matrix<Eigen::Matrix<double, Eigen::Dynamic, 1>, 1, Eigen::Dynamic>,
-	Eigen::Matrix<Network::DMatrix, Eigen::Dynamic, Eigen::Dynamic>>
-	Network::Backprop(unsigned char* input, unsigned char output)
+Network::DVectorV costDerivative(Network::DVectorV networkOut,
+								 Network::DVectorV expectedOut)
+{																
+	return networkOut - expectedOut;
+}
+
+std::pair<Eigen::Matrix<Network::DVectorV, Eigen::Dynamic, 1>, Network::DTensor>
+	Network::Backprop(const DataSet &batch, unsigned char* input, unsigned char output)
 {
-	auto nabla_b = Eigen::Matrix<Eigen::Matrix<double, Eigen::Dynamic, 1>, 1, Eigen::Dynamic>();
-	auto nabla_w = Eigen::Matrix<Network::DMatrix, Eigen::Dynamic, Eigen::Dynamic>();
+	auto nablaB = Eigen::Matrix<Network::DVectorV, 1, Eigen::Dynamic>();
+	auto nablaW = Network::DTensor();
+
+	Network::DVectorV activation = Network::DVectorV();
+
+	std::vector<Network::DVectorV> activations;
+
+	activation.resize(batch.DataSize());
+
+	for (int i = 0; i < batch.DataSize(); i++)
+		activation(i) = input[i];
+
+	activations.push_back(activation);
+
+	for (int i = 1; i < NumLayers(); i++)
+		activations.push_back(weights(i) * activations[i - 1] + biases(i));
+
+	/* feedforward */
+
+	for (int i = NumLayers() - 1; i > -1; i--)
+	{
+		//nablaW(i) = activations(i - 1) * []
+	}
+	
 	return std::make_pair(biases, weights);
 }
+
 
 

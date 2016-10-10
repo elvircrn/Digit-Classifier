@@ -34,6 +34,7 @@ public:
 	int ImageCount() const;
 	int ImageHeight() const;
 	int ImageWidth() const;
+	int DataSize() const;
 	#pragma endregion
 
 	void Load(std::string, std::string, int);
