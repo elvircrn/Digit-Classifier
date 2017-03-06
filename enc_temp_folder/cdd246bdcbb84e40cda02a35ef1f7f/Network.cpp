@@ -128,7 +128,6 @@ Network::Backprop(const DataSet &batch, unsigned char* input, unsigned char outp
 	/* Backpropagation */
 	Network::DVectorV delta = cd.cwiseProduct(ac);
 
-	// TODO: fix indexing bug
 	nablaB[nablaW.size() - 2] = delta;
 	nablaW[nablaW.size() - 2] = delta * activations[activations.size() - 2].transpose();
 

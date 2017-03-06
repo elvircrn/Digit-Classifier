@@ -14,13 +14,13 @@ protected:
 	int _numLayers;
 	
 public:
-	typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> DMatrix;
-	typedef Eigen::Matrix<double, Eigen::Dynamic, 1> DVectorV;
-	typedef Eigen::Matrix<DMatrix, Eigen::Dynamic, Eigen::Dynamic> DTensor;
+	typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>	    DVectorV;
+	typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>		DMatrix;
+	typedef std::vector<DMatrix>										DTensor;
 
-	std::vector<int> layerSizes;
-	Eigen::Matrix<Eigen::Matrix<double, Eigen::Dynamic, 1>, 1, Eigen::Dynamic> biases;
-	Eigen::Matrix<Network::DMatrix, Eigen::Dynamic, Eigen::Dynamic> weights;
+	std::vector<int>         layerSizes;
+	std::vector<DVectorV>    biases;
+	std::vector<DMatrix>	 weights;
 
 	Network();
 	Network(const std::vector<int> &);
@@ -30,6 +30,6 @@ public:
 	auto FeedForward(Network::DMatrix &a);
 	void SGD(DataSet&, int, double);
 	void UpdateMiniBatch(const DataSet&, int, int, double);
-	std::pair<Eigen::Matrix<Network::DVectorV, Eigen::Dynamic, 1>, DTensor> Backprop(const DataSet&, unsigned char*, unsigned char);
+	std::pair<std::vector<Network::DVectorV>, std::vector<Network::DMatrix>> Backprop(const DataSet&, unsigned char*, unsigned char);
 };
 

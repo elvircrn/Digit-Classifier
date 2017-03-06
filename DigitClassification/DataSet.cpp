@@ -101,7 +101,7 @@ void DataSet::LoadLabels(std::string labelsLocation)
 		for (int i = 0; i < ImageCount(); i++)
 		{
 			file.read((char*)&temp, sizeof(temp));
-			_data[i] = (unsigned char)temp;
+			_labels[i] = (unsigned char)temp;
 		}
 	}
 	else
@@ -116,6 +116,11 @@ void DataSet::Init()
 {
 	_data = nullptr;
 	_labels = nullptr;
+}
+
+int DataSet::PixelCount() const
+{
+	return ImageHeight() * ImageWidth();
 }
 
 DataSet::DataSet()

@@ -1,5 +1,4 @@
 #include "stdafx.h"
-
 #include <Eigen/Core>
 
 #include "DataSet.h"
@@ -14,7 +13,7 @@ int main()
 
 	dataSet.Load(DataSet::TRAINING_IMAGES, DataSet::TRAINING_LABELS, 600);
 
-	Network net = Network({ 784, 100, 10 });
+	Network net = Network({ 784, 30, 10 });
 
 	net.SGD(dataSet, 30, 1.0);
 

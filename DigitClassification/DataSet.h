@@ -15,6 +15,7 @@ protected:
 	unsigned char *_labels;
 
 	void Init();
+	int GetPixelCount();
 	void LoadImages(std::string, int);
 	void LoadLabels(std::string);
 
@@ -36,6 +37,7 @@ public:
 	int ImageHeight() const;
 	int ImageWidth() const;
 	int DataSize() const;
+	int PixelCount() const;
 #pragma endregion
 
 	void Load(std::string, std::string, int);
