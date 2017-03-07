@@ -26,10 +26,11 @@ public:
 	Network(const std::vector<int> &);
 	~Network();
 
-	int NumLayers();
-	auto FeedForward(Network::DMatrix &a);
+	int NumLayers() const;
+	Network::DVectorV FeedForward(const Network::DMatrix &a) const;
 	void SGD(DataSet&, int, double);
 	void UpdateMiniBatch(const DataSet&, int, int, double);
-	std::pair<std::vector<Network::DVectorV>, std::vector<Network::DMatrix>> Backprop(const DataSet&, unsigned char*, unsigned char);
+	std::pair<std::vector<Network::DVectorV>, std::vector<Network::DMatrix>> 
+		Backprop(const DataSet&, unsigned char*, unsigned char);
 };
 

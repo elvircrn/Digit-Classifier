@@ -9,14 +9,14 @@ using namespace Eigen;
 
 Network::Network() { }
 
-Network::Network(const std::vector<int>& _layerSizes) : layerSizes(_layerSizes), biases(NumLayers()), weights(NumLayers())
+Network::Network(const std::vector<int>& _layerSizes) : 
+	layerSizes(_layerSizes), biases(NumLayers() - 1), weights(NumLayers() - 1)
 {
 	for (int i = 1; i < NumLayers(); i++)
 	{
 		weights[i - 1] = Network::DMatrix::Random(layerSizes[i], layerSizes[i - 1]);
 		biases[i - 1]  = Network::DVectorV::Random(layerSizes[i], 1);
 	}
-	int asd = 2;
 }
 
 Network::~Network()
@@ -24,37 +24,42 @@ Network::~Network()
 
 }
 
-int Network::NumLayers()
+int Network::NumLayers() const
 {
 	return layerSizes.size();
 }
 
-auto Network::FeedForward(Network::DMatrix &a)
+Network::DVectorV Network::FeedForward(const Network::DMatrix &_a) const
 {
+	Network::DMatrix a = _a;
 	for (int i = 0; i < NumLayers() - 1; i++)
 		a = Math::Sigmoid(weights[i] * a + biases[i]);
-	return a;
+	return (Network::DVectorV)a;
 }
 
 void Network::SGD(DataSet &dataSet, int epochs, double learningRate)
 {
 	int batchSize = dataSet.ImageCount() / epochs;
-	for (int t = 0; t < dataSet.ImageCount(); t += batchSize)
+	//for (int t = 0; t < dataSet.ImageCount(); t += batchSize)
+	for (int t = 0; t < 550; t += batchSize)
 	{
 		dataSet.Shuffle();
 		UpdateMiniBatch(dataSet, t, batchSize, learningRate);
 	}
 }
 
-void Network::UpdateMiniBatch(const DataSet &batch, int batchStart, int batchSize, double learningRate)
+void Network::UpdateMiniBatch(const DataSet &batch, 
+								int batchStart, 
+								int batchSize, 
+								double learningRate)
 {
-	std::vector<Network::DMatrix>  nabla_w = weights;
-	std::vector<Network::DVectorV> nabla_b = biases;
+	std::vector<Network::DMatrix>  nablaW = weights;
+	std::vector<Network::DVectorV> nablaB = biases;
 
 	for (int i = 0; i < NumLayers() - 1; i++)
 	{
-		nabla_w[i].setZero();
-		nabla_b[i].setZero();
+		nablaW[i].setZero();
+		nablaB[i].setZero();
 	}
 
 	for (int i = batchStart; i < batchStart + batchSize; i++)
@@ -63,23 +68,16 @@ void Network::UpdateMiniBatch(const DataSet &batch, int batchStart, int batchSiz
 
 		for (int j = 0; j < NumLayers() - 1; j++)
 		{
-			nabla_b[j] += back.first[j];
-			nabla_w[j] += back.second[j];
+			nablaB[j] += back.first[j];
+			nablaW[j] += back.second[j];
 		}
 	}
 
 	for (int i = 0; i < NumLayers() - 1; i++)
 	{
-		if (weights[i].rows() != nabla_w[i].rows() || weights[i].cols() != nabla_w[i].cols())
-		{
-			int x = nabla_w[i].rows();
-			int y = nabla_w[i].cols();
-			int ses = 2;
-		}
-		weights[i] -= (learningRate / batch.ImageCount()) *	nabla_w[i];
-		biases[i]  -= (learningRate / batch.ImageCount()) *	nabla_b[i];
+		weights[i] -= (learningRate / batch.ImageCount()) *	nablaW[i];
+		biases[i]  -= (learningRate / batch.ImageCount()) *	nablaB[i];
 	}
-	int asd = 2;
 }
 
 Network::DVectorV CostDerivative(Network::DVectorV networkOut,
@@ -101,13 +99,11 @@ Network::Backprop(const DataSet &batch, unsigned char* input, unsigned char outp
 	}
 
 	Network::DVectorV activation = Network::DVectorV(layerSizes[0], 1);
-	Network::DVectorV z = Network::DVectorV();
 
-	std::vector<Network::DVectorV> activations;
+	std::vector<Network::DMatrix> activations;
 	std::vector<Network::DVectorV> zs;
 
 	/* Feedforward */
-	//activation.resize(batch.PixelCount());
 
 	for (int i = 0; i < batch.DataSize(); i++)
 		activation(i, 0) = input[i];
@@ -127,22 +123,21 @@ Network::Backprop(const DataSet &batch, unsigned char* input, unsigned char outp
 
 	/* Backpropagation */
 	Network::DVectorV delta = cd.cwiseProduct(ac);
+	std::cout << delta << '\n';
 
-	// TODO: fix indexing bug
-	nablaB[nablaW.size() - 2] = delta;
-	nablaW[nablaW.size() - 2] = delta * activations[activations.size() - 2].transpose();
+	nablaB.back() = delta;
+	nablaW.back() = delta * activations[activations.size() - 2].transpose();
 
-	for (int i = NumLayers() - 2; i > 0; i--)
+	for (int i = NumLayers() - 3; i > -1; i--)
 	{
-		DVectorV stepBack = weights[i].transpose() * delta;
-		DVectorV sprime = Math::SigmoidPrime(zs[i - 1]);
+		DVectorV stepBack = weights[i + 1].transpose() * delta;
+		DVectorV sprime = Math::SigmoidPrime(zs[i]);
 
 		delta = stepBack.cwiseProduct(sprime);
 
 		nablaB[i] = delta;
-		nablaW[i] = delta * activations[i + 1].transpose();
+		nablaW[i] = delta * activations[i].transpose();
 	}
-
-
+	
 	return std::make_pair(nablaB, nablaW);
 }

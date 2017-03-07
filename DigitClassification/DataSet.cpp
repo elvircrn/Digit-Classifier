@@ -203,3 +203,28 @@ Eigen::Matrix<double, Eigen::Dynamic, 1> DataSet::ToVector(unsigned char x) cons
 	result(x) = 1;
 	return result;
 }
+
+Eigen::Matrix<double, Eigen::Dynamic, 1> DataSet::ToVector(unsigned char *img) const
+{
+	auto ret = Eigen::Matrix<double, Eigen::Dynamic, 1>(PixelCount(), 1);
+	for (int i = 0; i < PixelCount(); i++)
+		ret[i] = img[i];
+	return ret;
+}
+
+std::vector<DataSet> DataSet::Split(const std::vector<int>& parts) const
+{
+	std::vector<DataSet> sets;
+	int sum = parts[0], index = 0, x = 0, y = 0;
+
+	for (int i = 0; i < (int)parts.size(); i++)
+	{
+		for (int j = 0; j < parts[i]; j++)
+		{
+			sets.push_back(DataSet());
+			index++;
+		}
+	}
+
+	return sets;
+}

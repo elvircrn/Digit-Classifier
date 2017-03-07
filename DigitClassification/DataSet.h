@@ -15,7 +15,6 @@ protected:
 	unsigned char *_labels;
 
 	void Init();
-	int GetPixelCount();
 	void LoadImages(std::string, int);
 	void LoadLabels(std::string);
 
@@ -44,6 +43,8 @@ public:
 	unsigned char GetPixel(int, int, int) const;
 	void Shuffle();
 	Eigen::Matrix<double, Eigen::Dynamic, 1> ToVector(unsigned char) const;
+	Eigen::Matrix<double, Eigen::Dynamic, 1> ToVector(unsigned char*) const;
+	std::vector<DataSet> Split(const std::vector<int> &parts) const;
 
 	DataSet::Data operator[] (const int index) const;
 };

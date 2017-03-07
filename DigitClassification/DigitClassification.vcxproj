@@ -143,14 +143,17 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Clasifier.h" />
     <ClInclude Include="DataSet.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="Network.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="Tester.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Clasifier.cpp" />
     <ClCompile Include="DataSet.cpp" />
     <ClCompile Include="DigitClassification.cpp" />
     <ClCompile Include="Image.cpp" />
@@ -162,6 +165,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Tester.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
