@@ -10,7 +10,9 @@ using namespace Eigen;
 Network::Network() { }
 
 Network::Network(const std::vector<int>& _layerSizes) : 
-	layerSizes(_layerSizes), biases(NumLayers() - 1), weights(NumLayers() - 1)
+	layerSizes(_layerSizes), biases(NumLayers() - 1), weights(NumLayers() - 1),
+	nablaW(NumLayers() - 1), nablaB(NumLayers() - 1),
+	batchNablaW(NumLayers() - 1), batchNablaB(NumLayers() - 1)
 {
 	for (int i = 1; i < NumLayers(); i++)
 	{
@@ -40,10 +42,9 @@ Network::DVectorV Network::FeedForward(const Network::DMatrix &_a) const
 void Network::SGD(DataSet &dataSet, int epochs, double learningRate)
 {
 	int batchSize = dataSet.ImageCount() / epochs;
-	//for (int t = 0; t < dataSet.ImageCount(); t += batchSize)
-	for (int t = 0; t < 550; t += batchSize)
+	for (int t = 0; t < DataSet::TRAINING_COUNT; t += batchSize)
 	{
-		dataSet.Shuffle();
+		dataSet.Shuffle(0, DataSet::TRAINING_COUNT);
 		UpdateMiniBatch(dataSet, t, batchSize, learningRate);
 	}
 }
@@ -53,30 +54,27 @@ void Network::UpdateMiniBatch(const DataSet &batch,
 								int batchSize, 
 								double learningRate)
 {
-	std::vector<Network::DMatrix>  nablaW = weights;
-	std::vector<Network::DVectorV> nablaB = biases;
-
 	for (int i = 0; i < NumLayers() - 1; i++)
 	{
-		nablaW[i].setZero();
-		nablaB[i].setZero();
+		batchNablaW[i].setZero();
+		batchNablaB[i].setZero();
 	}
 
 	for (int i = batchStart; i < batchStart + batchSize; i++)
 	{
-		auto back = Backprop(batch, batch[i].first, *batch[i].second);
+		Backprop(batch, batch[i].first, *batch[i].second);
 
 		for (int j = 0; j < NumLayers() - 1; j++)
 		{
-			nablaB[j] += back.first[j];
-			nablaW[j] += back.second[j];
+			batchNablaW[j] += nablaW[j];
+			batchNablaB[j] += nablaB[j];
 		}
 	}
 
 	for (int i = 0; i < NumLayers() - 1; i++)
 	{
-		weights[i] -= (learningRate / batch.ImageCount()) *	nablaW[i];
-		biases[i]  -= (learningRate / batch.ImageCount()) *	nablaB[i];
+		weights[i] -= (learningRate / batch.ImageCount()) *	batchNablaW[i];
+		biases[i]  -= (learningRate / batch.ImageCount()) *	batchNablaB[i];
 	}
 }
 
@@ -86,26 +84,17 @@ Network::DVectorV CostDerivative(Network::DVectorV networkOut,
 	return networkOut - expectedOut;
 }
 
-std::pair<std::vector<Network::DVectorV>, std::vector<Network::DMatrix>>
-Network::Backprop(const DataSet &batch, unsigned char* input, unsigned char output)
+void Network::Backprop(const DataSet &batch, 
+						std::vector<unsigned char>::const_iterator input, 
+						unsigned char output)
 {
-	std::vector<DMatrix> nablaW = weights;
-	std::vector<DVectorV> nablaB = biases;
-
-	for (int i = 0; i < NumLayers() - 1; i++)
-	{
-		nablaW[i].setZero();
-		nablaB[i].setZero();
-	}
-
 	Network::DVectorV activation = Network::DVectorV(layerSizes[0], 1);
 
 	std::vector<Network::DMatrix> activations;
 	std::vector<Network::DVectorV> zs;
 
 	/* Feedforward */
-
-	for (int i = 0; i < batch.DataSize(); i++)
+	for (int i = 0; i < batch.PixelCount(); i++)
 		activation(i, 0) = input[i];
 
 	activations.push_back(activation);
@@ -123,7 +112,6 @@ Network::Backprop(const DataSet &batch, unsigned char* input, unsigned char outp
 
 	/* Backpropagation */
 	Network::DVectorV delta = cd.cwiseProduct(ac);
-	std::cout << delta << '\n';
 
 	nablaB.back() = delta;
 	nablaW.back() = delta * activations[activations.size() - 2].transpose();
@@ -138,6 +126,4 @@ Network::Backprop(const DataSet &batch, unsigned char* input, unsigned char outp
 		nablaB[i] = delta;
 		nablaW[i] = delta * activations[i].transpose();
 	}
-	
-	return std::make_pair(nablaB, nablaW);
 }

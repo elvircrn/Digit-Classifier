@@ -30,7 +30,13 @@ public:
 	Network::DVectorV FeedForward(const Network::DMatrix &a) const;
 	void SGD(DataSet&, int, double);
 	void UpdateMiniBatch(const DataSet&, int, int, double);
-	std::pair<std::vector<Network::DVectorV>, std::vector<Network::DMatrix>> 
-		Backprop(const DataSet&, unsigned char*, unsigned char);
+	void Backprop(const DataSet &batch,
+				 std::vector<unsigned char>::const_iterator input,
+				 unsigned char output);
+protected:
+	std::vector<DMatrix> nablaW;
+	std::vector<DVectorV> nablaB;
+	std::vector<DMatrix> batchNablaW;
+	std::vector<DVectorV> batchNablaB;
 };
 

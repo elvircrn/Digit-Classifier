@@ -1,23 +1,12 @@
 #include "stdafx.h"
+#include <random>
 
 #include <Eigen/Core>
+
 #include "DataSet.h"
 
 const std::string DataSet::TRAINING_IMAGES = "train-images.idx3-ubyte";
 const std::string DataSet::TRAINING_LABELS = "train-labels.idx1-ubyte";
-
-void DataSet::_dispose()
-{
-	if (_data != nullptr)
-		delete[] _data;
-
-	_data = nullptr;
-
-	if (_labels != nullptr)
-		delete[] _labels;
-
-	_labels = nullptr;
-}
 
 #pragma region Data Read
 
@@ -58,7 +47,7 @@ void DataSet::LoadImages(std::string imagesLocation, int numberOfImages)
 		SetImageHeight(_imgHeight);
 		SetImageWidth(_imgWidth);
 
-		_data = new unsigned char[_imgCount * _imgHeight * _imgWidth];
+		_data = std::vector<unsigned char>(_imgCount * _imgHeight * _imgWidth);
 
 		for (int i = 0; i < ImageCount(); i++)
 		{
@@ -95,7 +84,7 @@ void DataSet::LoadLabels(std::string labelsLocation)
 
 		file.read((char*)&actualCount, sizeof(actualCount));
 
-		_labels = new unsigned char[ImageCount()];
+		_labels = std::vector<unsigned char>(ImageCount());
 
 		unsigned char temp;
 		for (int i = 0; i < ImageCount(); i++)
@@ -110,12 +99,19 @@ void DataSet::LoadLabels(std::string labelsLocation)
 	}
 }
 
+void DataSet::Swap(int x, int y)
+{
+	for (int i = 0; i < PixelCount(); i++)
+		std::swap(_data[x + i], _data[y + i]);
+	std::swap(_labels[x], _labels[y]);
+}
+
 #pragma endregion
 
 void DataSet::Init()
 {
-	_data = nullptr;
-	_labels = nullptr;
+	_data.clear();
+	_labels.clear();
 }
 
 int DataSet::PixelCount() const
@@ -123,20 +119,21 @@ int DataSet::PixelCount() const
 	return ImageHeight() * ImageWidth();
 }
 
+int DataSet::GetLabel(int index) const
+{
+	return (int)_labels[index];
+}
+
 DataSet::DataSet()
 {
 	Init();
+	_dataSize = TOTAL_IMAGES_COUNT;
 }
 
 DataSet::DataSet(int __dataSize)
 {
 	Init();
 	_dataSize = __dataSize;
-}
-
-DataSet::~DataSet()
-{
-	_dispose();
 }
 
 void DataSet::SetImageWidth(int imgWidth)
@@ -176,7 +173,6 @@ int DataSet::DataSize() const
 
 void DataSet::Load(std::string imagesLocation, std::string labelsLocation, int numberOfImages)
 {
-	_dispose();
 	LoadImages(imagesLocation, numberOfImages);
 	LoadLabels(labelsLocation);
 }
@@ -186,15 +182,20 @@ unsigned char DataSet::GetPixel(int img, int h, int w) const
 	return _data[img * (ImageHeight() * ImageWidth()) + h * ImageWidth() + w];
 }
 
-void DataSet::Shuffle()
+void DataSet::Shuffle(int start, int end)
 {
-	//TODO: Implement
+	std::mt19937 gen;
+	std::uniform_int_distribution<> dis;
+	gen = std::mt19937(std::random_device()());
+	dis = std::uniform_int_distribution<>(start, end - 2);
+
+	for (int i = 0; i < (end - start / 2) / 4; i++)
+		Swap(dis(gen), dis(gen));
 }
 
 DataSet::Data DataSet::operator[](const int index) const
 {
-	return DataSet::Data(_data + (index * ImageWidth() * ImageHeight()),
-						 _labels + index);
+	return{ _data.begin() + index * ImageWidth() * ImageHeight(), _labels.begin() + index };
 }
 
 Eigen::Matrix<double, Eigen::Dynamic, 1> DataSet::ToVector(unsigned char x) const
@@ -204,7 +205,7 @@ Eigen::Matrix<double, Eigen::Dynamic, 1> DataSet::ToVector(unsigned char x) cons
 	return result;
 }
 
-Eigen::Matrix<double, Eigen::Dynamic, 1> DataSet::ToVector(unsigned char *img) const
+Eigen::Matrix<double, Eigen::Dynamic, 1> DataSet::ToVector(std::vector<unsigned char>::const_iterator img) const
 {
 	auto ret = Eigen::Matrix<double, Eigen::Dynamic, 1>(PixelCount(), 1);
 	for (int i = 0; i < PixelCount(); i++)
@@ -212,6 +213,8 @@ Eigen::Matrix<double, Eigen::Dynamic, 1> DataSet::ToVector(unsigned char *img) c
 	return ret;
 }
 
+// TODO: Implement
+// WARNING: Broken!
 std::vector<DataSet> DataSet::Split(const std::vector<int>& parts) const
 {
 	std::vector<DataSet> sets;

@@ -17,22 +17,26 @@ int Tester::GetConclusion(const Network::DVectorV &v)
 	int ind = 0;
 	for (int i = 1; i < v.rows(); i++)
 	{
+		std::cout << v(i) << '\n';
 		if (x < v(i))
 		{
 			x = v(i);
 			ind = i;
 		}
 	}
-	return (ind == 0) ? 10 : ind;
+	std::cout << "\n\n";
+	std::getchar();
+	return ind;
 }
 
 void Tester::Analyze(const DataSet &testSet, const Network &network)
 {
 	int passed = 0;
-	for (int i = 500; i < 600; i++)
+	for (int i = DataSet::TRAINING_COUNT; i < DataSet::TOTAL_IMAGES_COUNT; i++)
 	{
-		int conclusion = Tester::GetConclusion(network.FeedForward((testSet.ToVector(testSet[i].second))));
-		passed += (conclusion == *testSet[i].second);
+		int conclusion = Tester::GetConclusion(network.FeedForward(testSet.ToVector(testSet[i].first)));
+		//std::cout << conclusion << ' ' << testSet.GetLabel(i)<< '\n';
+		passed += (conclusion == testSet.GetLabel(i));
 	}
-	std::cout << "Accuracy: " << passed << "%\n";
+	std::cout << "Accuracy: " << (passed / (double)DataSet::VALIDATION_COUNT) * 100.0 << "%\n";
 }
