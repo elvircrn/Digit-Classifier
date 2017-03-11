@@ -16,7 +16,7 @@ int main()
 
 	Network net = Network({ 784, 30, 10 });
 
-	net.SGD(dataSet, 30, 1.0);
+	net.SGD(dataSet, 30, 10, 3.0);
 
 	Tester::Analyze(dataSet, net);
 

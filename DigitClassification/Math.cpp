@@ -9,18 +9,13 @@ double Math::Sigmoid(double x)
 	return 1.0 / (1.0 + std::exp(-x));
 }
 
-Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> Math::Sigmoid(const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> &m)
+double Math::SigmoidPrime(double x)
 {
-	auto x = m;
-
-	for (int i = 0; i < m.rows(); i++)
-		for (int j = 0; j < m.cols(); j++)
-			x(i, j) = Math::Sigmoid(m(i, j));
-
-	return x;
+	double sigmoid = Sigmoid(x);
+	return sigmoid * (1 - sigmoid);
 }
 
-double Math::SigmoidPrime(double x)
+double Math::SigmoidPrimeUn(double x)
 {
 	double sigmoid = Sigmoid(x);
 	return sigmoid * (1 - sigmoid);

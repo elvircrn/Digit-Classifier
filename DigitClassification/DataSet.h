@@ -12,7 +12,6 @@ private:
 protected:
 	int _dataSize, _imgWidth, _imgHeight, _imgCount;
 
-	std::vector<unsigned char> _data, _labels;
 
 	void Init();
 	void LoadImages(std::string, int);
@@ -20,9 +19,11 @@ protected:
 	void Swap(int, int);
 
 public:
-	static constexpr int TRAINING_COUNT		= 500;
-	static constexpr int VALIDATION_COUNT   = 100;
-	static constexpr int TOTAL_IMAGES_COUNT = 600;
+	std::vector<unsigned char> _data, _labels;
+
+	static constexpr int TRAINING_COUNT		= 50000;
+	static constexpr int VALIDATION_COUNT   = 10000;
+	static constexpr int TOTAL_IMAGES_COUNT = 60000;
 	
 	typedef std::pair<std::vector<unsigned char>::const_iterator, 
 					  std::vector<unsigned char>::const_iterator> Data;
@@ -46,12 +47,11 @@ public:
 	#pragma endregion
 
 	void Load(std::string, std::string, int = TOTAL_IMAGES_COUNT);
-	unsigned char GetPixel(int, int, int) const;
+	unsigned char GetPixel(int, int) const;
 	void Shuffle(int, int);
 	Eigen::Matrix<double, Eigen::Dynamic, 1> ToVector(unsigned char) const;
-	Eigen::Matrix<double, Eigen::Dynamic, 1> 
-		ToVector(std::vector<unsigned char>::const_iterator) const;
 	std::vector<DataSet> Split(const std::vector<int> &parts) const;
+	Eigen::Matrix<double, Eigen::Dynamic, 1> GetInputVector(int) const;
 
 	DataSet::Data operator[] (const int index) const;
 };

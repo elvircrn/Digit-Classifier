@@ -15,7 +15,7 @@ protected:
 	
 public:
 	typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>	    DVectorV;
-	typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic>		DMatrix;
+	typedef Eigen::MatrixXd                                      		DMatrix;
 	typedef std::vector<DMatrix>										DTensor;
 
 	std::vector<int>         layerSizes;
@@ -28,10 +28,10 @@ public:
 
 	int NumLayers() const;
 	Network::DVectorV FeedForward(const Network::DMatrix &a) const;
-	void SGD(DataSet&, int, double);
+	void SGD(DataSet&, int, int, double);
 	void UpdateMiniBatch(const DataSet&, int, int, double);
 	void Backprop(const DataSet &batch,
-				 std::vector<unsigned char>::const_iterator input,
+				 int inputIndex,
 				 unsigned char output);
 protected:
 	std::vector<DMatrix> nablaW;

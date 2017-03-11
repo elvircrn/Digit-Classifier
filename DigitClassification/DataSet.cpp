@@ -49,17 +49,11 @@ void DataSet::LoadImages(std::string imagesLocation, int numberOfImages)
 
 		_data = std::vector<unsigned char>(_imgCount * _imgHeight * _imgWidth);
 
-		for (int i = 0; i < ImageCount(); i++)
+		for (int i = 0; i < numberOfImages * _imgHeight * _imgWidth; i++)
 		{
-			for (int r = 0; r < _imgHeight; r++)
-			{
-				for (int c = 0; c < _imgWidth; c++)
-				{
-					unsigned char temp = 0;
-					file.read((char*)&temp, sizeof(temp));
-					_data[i * (ImageHeight() * ImageWidth()) + r * ImageWidth() + c] = (unsigned char)temp;
-				}
-			}
+			unsigned char temp = 0;
+			file.read((char*)&temp, sizeof(temp));
+			_data[i] = (unsigned char)temp;
 		}
 	}
 	else
@@ -177,9 +171,9 @@ void DataSet::Load(std::string imagesLocation, std::string labelsLocation, int n
 	LoadLabels(labelsLocation);
 }
 
-unsigned char DataSet::GetPixel(int img, int h, int w) const
+unsigned char DataSet::GetPixel(int img, int h) const
 {
-	return _data[img * (ImageHeight() * ImageWidth()) + h * ImageWidth() + w];
+	return _data[img * (ImageHeight() * ImageWidth()) + h];
 }
 
 void DataSet::Shuffle(int start, int end)
@@ -189,7 +183,7 @@ void DataSet::Shuffle(int start, int end)
 	gen = std::mt19937(std::random_device()());
 	dis = std::uniform_int_distribution<>(start, end - 2);
 
-	for (int i = 0; i < (end - start / 2) / 4; i++)
+	for (int i = 0; i < (end - start / 2) / 16; i++)
 		Swap(dis(gen), dis(gen));
 }
 
@@ -201,16 +195,9 @@ DataSet::Data DataSet::operator[](const int index) const
 Eigen::Matrix<double, Eigen::Dynamic, 1> DataSet::ToVector(unsigned char x) const
 {
 	auto result = Eigen::Matrix<double, Eigen::Dynamic, 1>(10, 1);
+	result.setZero();
 	result(x) = 1;
 	return result;
-}
-
-Eigen::Matrix<double, Eigen::Dynamic, 1> DataSet::ToVector(std::vector<unsigned char>::const_iterator img) const
-{
-	auto ret = Eigen::Matrix<double, Eigen::Dynamic, 1>(PixelCount(), 1);
-	for (int i = 0; i < PixelCount(); i++)
-		ret[i] = img[i];
-	return ret;
 }
 
 // TODO: Implement
@@ -230,4 +217,13 @@ std::vector<DataSet> DataSet::Split(const std::vector<int>& parts) const
 	}
 
 	return sets;
+}
+
+Eigen::Matrix<double, Eigen::Dynamic, 1> DataSet::GetInputVector(int ind) const
+{
+	Eigen::Matrix<double, Eigen::Dynamic, 1> ret(PixelCount(), 1);
+
+	for (int i = 0; i < PixelCount(); i++)
+		ret(i, 0) = GetPixel(ind, i) / 255.0;
+	return ret;
 }
