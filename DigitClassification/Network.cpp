@@ -52,12 +52,17 @@ int Network::NumLayers() const
 	return layerSizes.size();
 }
 
-Network::DVectorV Network::FeedForward(const Network::DMatrix &_a) const
+Network::DVectorV Network::FeedForward(const Network::DVectorV &_a) const
 {
-	Network::DMatrix a = _a;
+	Network::DVectorV a = _a;
+	std::ofstream xout("out.txt");
+	for (int i = 0; i < 200; i++)
+		xout << a(i) << ' ';
+	xout << "---------\n";
+	std::getchar();
 	for (int i = 0; i < NumLayers() - 1; i++)
 	{
-		auto v = weights[i] * a + biases[i];
+		DVectorV v = weights[i] * a + biases[i];
 		a = v.unaryExpr(&Math::Sigmoid).eval();
 	}
 	return a;
@@ -86,9 +91,12 @@ void Network::UpdateMiniBatch(const DataSet &batch,
 		batchNablaB[i].setZero();
 	}
 
+	std::vector<int> counter(10);
+
 	for (int i = batchStart; i < batchStart + batchSize; i++)
 	{
 		Backprop(batch, i, batch._labels[i]);
+		counter[batch._labels[i]]++;
 
 		for (int j = 0; j < NumLayers() - 1; j++)
 		{
@@ -96,6 +104,12 @@ void Network::UpdateMiniBatch(const DataSet &batch,
 			batchNablaB[j] += nablaB[j];
 		}
 	}
+
+	//std::cout << "Batch set:\n";
+	//for (int i = 0; i < 10; i++)
+		//std::cout << i << " -> " << counter[i] << '\n';
+	//std::getchar();
+
 	for (int i = 0; i < NumLayers() - 1; i++)
 	{
 		weights[i] -= (learningRate / batchSize) * batchNablaW[i];
@@ -106,10 +120,10 @@ void Network::UpdateMiniBatch(const DataSet &batch,
 Network::DVectorV CostDerivative(const Network::DVectorV &networkOut,
 	const Network::DVectorV &expectedOut)
 {
-	//Network::DVectorV ret = networkOut - expectedOut;
-	Network::DVectorV ret = networkOut;
-	for (int i = 0; i < networkOut.rows(); i++)
-		ret(i) = (networkOut(i) - expectedOut(i)) / ((1 - networkOut(i)) * networkOut(i));
+	Network::DVectorV ret = networkOut - expectedOut;
+	//Network::DVectorV ret = networkOut;
+	//for (int i = 0; i < networkOut.rows(); i++)
+		//ret(i) = (networkOut(i) - expectedOut(i)) / ((1 - networkOut(i)) * networkOut(i));
 	return ret;
 }
 

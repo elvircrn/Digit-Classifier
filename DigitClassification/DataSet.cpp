@@ -66,6 +66,7 @@ void DataSet::LoadLabels(std::string labelsLocation)
 {
 	std::ifstream file(labelsLocation, std::ios::binary);
 	file.open(labelsLocation, std::ios::binary);
+	std::vector<int> counter(10);
 
 	if (file.is_open())
 	{
@@ -85,7 +86,12 @@ void DataSet::LoadLabels(std::string labelsLocation)
 		{
 			file.read((char*)&temp, sizeof(temp));
 			_labels[i] = (unsigned char)temp;
+			counter[(int)_labels[i]]++;
 		}
+		
+		std::cout << "Test set:\n";
+		for (int i = 0; i < 10; i++)
+			std::cout << i << " -> " << counter[i] << '\n';
 	}
 	else
 	{
