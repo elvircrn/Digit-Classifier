@@ -36,7 +36,8 @@ void Tester::Analyze(const DataSet &testSet, const Network &network)
 	for (int i = DataSet::TRAINING_COUNT; i < DataSet::TOTAL_IMAGES_COUNT; i++)
 	{
 		//std::cout << "input set\n" << testSet.GetInputVector(i) << "\n\n";
-		int conclusion = Tester::GetConclusion(network.FeedForward(testSet.GetInputVector(i)));
+		Network::DVectorV output = network.FeedForward(testSet.GetInputVector(i));
+		int conclusion = Tester::GetConclusion(output);
 		passed += (conclusion == testSet.GetLabel(i));
 		counter[conclusion]++;
 		//std::cout << "(" << conclusion << ", " << testSet.GetLabel(i) << ")\n";

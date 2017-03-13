@@ -20,7 +20,6 @@ Network::Network(const std::vector<int>& _layerSizes) :
 	std::mt19937 mt(rd());
 	std::uniform_real_distribution<double> dist(-eInit, eInit);
 
-
 	for (int i = 1; i < NumLayers(); i++)
 	{
 		weights[i - 1] = Network::DMatrix::Random(layerSizes[i], layerSizes[i - 1]);
@@ -40,6 +39,9 @@ Network::Network(const std::vector<int>& _layerSizes) :
 		nablaB[i - 1] = biases[i - 1];
 	}
 	biases[0].setZero();
+
+	std::ofstream xout("weights.txt");
+	xout << weights[0] << '\n';
 }
 
 Network::~Network()
@@ -59,12 +61,23 @@ Network::DVectorV Network::FeedForward(const Network::DVectorV &_a) const
 	for (int i = 0; i < 200; i++)
 		xout << a(i) << ' ';
 	xout << "---------\n";
-	std::getchar();
 	for (int i = 0; i < NumLayers() - 1; i++)
 	{
 		DVectorV v = weights[i] * a + biases[i];
-		a = v.unaryExpr(&Math::Sigmoid).eval();
+		//std::cout << "biases at layer " << i + 1 << '\n';
+		//std::cout << biases[i] << '\n';
+		//std::cout << "before\n";
+		//for (int j = 0; j < v.rows(); j++)
+			//std::cout << '\t' << v(j) << '\n';
+		//std::cout << "after\n";
+		a = v.unaryExpr(&Math::Sigmoid);
+		//for (int j = 0; j < a.rows(); j++)
+			//std::cout << '\t' << a(j) << '\n';
+		//std::cout << "end ff step:\n";
 	}
+
+	xout << weights[0] << '\n';
+	std::getchar();
 	return a;
 }
 
@@ -73,7 +86,7 @@ void Network::SGD(DataSet &dataSet, int epochs, int batchSize, double learningRa
 	while (epochs--)
 	{
 		std::cout << "Epochs left: " << epochs << '\n';
-		dataSet.Shuffle(0, DataSet::TRAINING_COUNT);
+		//dataSet.Shuffle(0, DataSet::TRAINING_COUNT);
 		for (int t = 0; t < DataSet::TRAINING_COUNT; t += batchSize)
 			UpdateMiniBatch(dataSet, t, batchSize, learningRate);
 		Tester::Analyze(dataSet, *this);
@@ -103,6 +116,11 @@ void Network::UpdateMiniBatch(const DataSet &batch,
 			batchNablaW[j] += nablaW[j];
 			batchNablaB[j] += nablaB[j];
 		}
+
+		//std::ofstream xout("batchNablaW.txt");
+		//xout << batchNablaW[0] << '\n';
+		//std::cout << "dumping batchNablaW" << '\n';
+		//std::cout << "max batchaNablaW: " << batchNablaW[0].maxCoeff() << '\n';
 	}
 
 	//std::cout << "Batch set:\n";
@@ -164,8 +182,16 @@ void Network::Backprop(const DataSet &batch,
 	{
 		auto wtd = weights[i + 1].transpose() * delta;
 		delta = wtd.cwiseProduct(zs[i].unaryExpr(&Math::SigmoidPrimeUn));
-		nablaB[i] = delta;
+		if (i != 0)
+			nablaB[i] = delta;
 		nablaW[i] = delta * activations[i].transpose();
 	}
 
+	//std::ofstream xout("nablaW.txt");
+	//xout << nablaW[0] << '\n';
+	//std::cout << "dumping nablaW" << '\n';
+	//std::cout << "max nablaW: " << nablaW[0].maxCoeff() << '\n';
+	//std::ofstream xout("nablaB.txt");
+	//xout << nablaB[0] << '\n';
+	//std::cout << "dumping nablaB" << '\n';
 }
