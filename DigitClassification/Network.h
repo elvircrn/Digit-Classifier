@@ -28,6 +28,7 @@ public:
 
 	int NumLayers() const;
 	Network::DVectorV FeedForward(const Network::DVectorV &a) const;
+	void PrintMaxLayers() const;
 	void SGD(DataSet&, int, int, double);
 	void UpdateMiniBatch(const DataSet&, int, int, double);
 	void Backprop(const DataSet &batch,

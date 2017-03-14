@@ -15,17 +15,14 @@ int Tester::GetConclusion(const Network::DVectorV &v)
 {
 	double x = v(0);
 	int ind = 0;
-	std::cout << "Conclusion:\n";
 	for (int i = 1; i < v.rows(); i++)
 	{
-		std::cout << v(i) << '\n';
 		if (x < v(i))
 		{
 			x = v(i);
 			ind = i;
 		}
 	}
-	std::getchar();
 	return ind;
 }
 

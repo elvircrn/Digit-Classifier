@@ -228,8 +228,7 @@ std::vector<DataSet> DataSet::Split(const std::vector<int>& parts) const
 Eigen::Matrix<double, Eigen::Dynamic, 1> DataSet::GetInputVector(int ind) const
 {
 	Eigen::Matrix<double, Eigen::Dynamic, 1> ret(PixelCount(), 1);
-
 	for (int i = 0; i < PixelCount(); i++)
-		ret(i, 0) = GetPixel(ind, i) / 255.0;
+		ret(i) = GetPixel(ind, i) / 255.0;
 	return ret;
 }

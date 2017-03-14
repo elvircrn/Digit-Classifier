@@ -39,9 +39,10 @@ Network::Network(const std::vector<int>& _layerSizes) :
 		nablaB[i - 1] = biases[i - 1];
 	}
 	biases[0].setZero();
+	nablaB[0].setZero();
 
-	std::ofstream xout("weights.txt");
-	xout << weights[0] << '\n';
+	//std::ofstream xout("weights.txt");
+	//xout << weights[0] << '\n';
 }
 
 Network::~Network()
@@ -57,28 +58,18 @@ int Network::NumLayers() const
 Network::DVectorV Network::FeedForward(const Network::DVectorV &_a) const
 {
 	Network::DVectorV a = _a;
-	std::ofstream xout("out.txt");
-	for (int i = 0; i < 200; i++)
-		xout << a(i) << ' ';
-	xout << "---------\n";
 	for (int i = 0; i < NumLayers() - 1; i++)
 	{
 		DVectorV v = weights[i] * a + biases[i];
-		//std::cout << "biases at layer " << i + 1 << '\n';
-		//std::cout << biases[i] << '\n';
-		//std::cout << "before\n";
-		//for (int j = 0; j < v.rows(); j++)
-			//std::cout << '\t' << v(j) << '\n';
-		//std::cout << "after\n";
 		a = v.unaryExpr(&Math::Sigmoid);
-		//for (int j = 0; j < a.rows(); j++)
-			//std::cout << '\t' << a(j) << '\n';
-		//std::cout << "end ff step:\n";
 	}
-
-	xout << weights[0] << '\n';
-	std::getchar();
 	return a;
+}
+
+void Network::PrintMaxLayers() const
+{
+	for (int i = 0; i < NumLayers() - 1; i++)
+		std::cout << "layer " << i + 1 << " max weights: " << weights[i].maxCoeff() << " max biases: " << biases[i].maxCoeff() << '\n';
 }
 
 void Network::SGD(DataSet &dataSet, int epochs, int batchSize, double learningRate)
@@ -89,6 +80,7 @@ void Network::SGD(DataSet &dataSet, int epochs, int batchSize, double learningRa
 		//dataSet.Shuffle(0, DataSet::TRAINING_COUNT);
 		for (int t = 0; t < DataSet::TRAINING_COUNT; t += batchSize)
 			UpdateMiniBatch(dataSet, t, batchSize, learningRate);
+		PrintMaxLayers();
 		Tester::Analyze(dataSet, *this);
 	}
 }
@@ -116,11 +108,6 @@ void Network::UpdateMiniBatch(const DataSet &batch,
 			batchNablaW[j] += nablaW[j];
 			batchNablaB[j] += nablaB[j];
 		}
-
-		//std::ofstream xout("batchNablaW.txt");
-		//xout << batchNablaW[0] << '\n';
-		//std::cout << "dumping batchNablaW" << '\n';
-		//std::cout << "max batchaNablaW: " << batchNablaW[0].maxCoeff() << '\n';
 	}
 
 	//std::cout << "Batch set:\n";
@@ -131,7 +118,7 @@ void Network::UpdateMiniBatch(const DataSet &batch,
 	for (int i = 0; i < NumLayers() - 1; i++)
 	{
 		weights[i] -= (learningRate / batchSize) * batchNablaW[i];
-		biases[i] -= (learningRate / batchSize) * batchNablaB[i];
+		biases[i]  -= (learningRate / batchSize) * batchNablaB[i];
 	}
 }
 
@@ -139,59 +126,48 @@ Network::DVectorV CostDerivative(const Network::DVectorV &networkOut,
 	const Network::DVectorV &expectedOut)
 {
 	Network::DVectorV ret = networkOut - expectedOut;
-	//Network::DVectorV ret = networkOut;
-	//for (int i = 0; i < networkOut.rows(); i++)
-		//ret(i) = (networkOut(i) - expectedOut(i)) / ((1 - networkOut(i)) * networkOut(i));
 	return ret;
 }
 
 double Cost(const Network::DVectorV &networkOut,
 	const Network::DVectorV &expectedOut)
 {
-	double ret(0);
-	//for (int i = 0; i < networkOut.rows(); i++)
-		//ret += ((networkOut(i) - expectedOut(i)).transpose() * (networkOut(i) - expectedOut(i)));
-	return ret;
+	return 0;
 }
 
 void Network::Backprop(const DataSet &batch, 
 						int inputIndex, 
 						unsigned char output)
 {
-	std::vector<Network::DMatrix> activations(NumLayers());
+	std::vector<Network::DVectorV> activations(NumLayers());
 	std::vector<Network::DVectorV> zs;
 
 	activations[0] = batch.GetInputVector(inputIndex);
 
 	for (int i = 0; i < NumLayers() - 1; i++)
 	{
+		nablaB[i].setZero();
+		nablaW[i].setZero();
 		zs.push_back((weights[i] * activations[i]) + biases[i]);
 		activations[i + 1] = zs.back().unaryExpr(&Math::Sigmoid);
 	}
 
-	Network::DVectorV cd = CostDerivative(activations.back(), batch.ToVector(output));
-
 	/* Backpropagation */
+	Network::DVectorV cd = CostDerivative(activations.back(), batch.ToVector(output));
 	Network::DVectorV delta = cd.cwiseProduct(zs.back().unaryExpr(&Math::SigmoidPrimeUn));
 
 	nablaB.back() = delta;
-	nablaW.back() = (delta * activations[activations.size() - 2].transpose()).eval();
+	nablaW.back() = delta * activations[activations.size() - 2].transpose();
+
+	Network::DMatrix wtd;
 
 	// i = 0
 	for (int i = NumLayers() - 3; i > -1; i--)
 	{
-		auto wtd = weights[i + 1].transpose() * delta;
+		wtd = weights[i + 1].transpose() * delta;
 		delta = wtd.cwiseProduct(zs[i].unaryExpr(&Math::SigmoidPrimeUn));
-		if (i != 0)
+		if (i)
 			nablaB[i] = delta;
 		nablaW[i] = delta * activations[i].transpose();
 	}
-
-	//std::ofstream xout("nablaW.txt");
-	//xout << nablaW[0] << '\n';
-	//std::cout << "dumping nablaW" << '\n';
-	//std::cout << "max nablaW: " << nablaW[0].maxCoeff() << '\n';
-	//std::ofstream xout("nablaB.txt");
-	//xout << nablaB[0] << '\n';
-	//std::cout << "dumping nablaB" << '\n';
 }
