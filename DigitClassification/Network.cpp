@@ -22,8 +22,8 @@ Network::Network(const std::vector<int>& _layerSizes) :
 
 	for (int i = 1; i < NumLayers(); i++)
 	{
-		weights[i - 1] = Network::DMatrix::Random(layerSizes[i], layerSizes[i - 1]);
-		biases[i - 1]  = Network::DVectorV::Random(layerSizes[i], 1);
+		weights[i - 1] = Network::DMatrix(layerSizes[i], layerSizes[i - 1]);
+		biases[i - 1]  = Network::DVectorV(layerSizes[i], 1);
 
 		for (int r = 0; r < weights[i - 1].rows(); r++)
 			for (int c = 0; c < weights[i - 1].cols(); c++)
@@ -40,9 +40,40 @@ Network::Network(const std::vector<int>& _layerSizes) :
 	}
 	biases[0].setZero();
 	nablaB[0].setZero();
+}
 
-	//std::ofstream xout("weights.txt");
-	//xout << weights[0] << '\n';
+Network::Network(const std::vector<int>& _layerSizes, Network::FnCost _func, double _lambda) :
+	layerSizes(_layerSizes), biases(NumLayers() - 1), weights(NumLayers() - 1),
+	nablaW(NumLayers() - 1), nablaB(NumLayers() - 1),
+	batchNablaW(NumLayers() - 1), batchNablaB(NumLayers() - 1),
+	lambda(_lambda)
+{
+	double eInit = std::sqrt(6) / std::sqrt(layerSizes[0] + layerSizes.back());
+	std::random_device rd;
+	std::mt19937 mt(rd());
+	std::uniform_real_distribution<double> dist(-eInit, eInit);
+
+	for (int i = 1; i < NumLayers(); i++)
+	{
+		weights[i - 1] = Network::DMatrix(layerSizes[i], layerSizes[i - 1]);
+		biases[i - 1] = Network::DVectorV(layerSizes[i], 1);
+
+		for (int r = 0; r < weights[i - 1].rows(); r++)
+			for (int c = 0; c < weights[i - 1].cols(); c++)
+				weights[i - 1](r, c) = dist(mt);
+
+		for (int r = 0; r < biases[i - 1].rows(); r++)
+			biases[i - 1](r) = dist(mt);
+
+		batchNablaW[i - 1] = weights[i - 1];
+		batchNablaB[i - 1] = biases[i - 1];
+
+		nablaW[i - 1] = weights[i - 1];
+		nablaB[i - 1] = biases[i - 1];
+	}
+	biases[0].setZero();
+	nablaB[0].setZero();
+	CostDerivative = _func;
 }
 
 Network::~Network()
@@ -69,7 +100,8 @@ Network::DVectorV Network::FeedForward(const Network::DVectorV &_a) const
 void Network::PrintMaxLayers() const
 {
 	for (int i = 0; i < NumLayers() - 1; i++)
-		std::cout << "layer " << i + 1 << " max weights: " << weights[i].maxCoeff() << " max biases: " << biases[i].maxCoeff() << '\n';
+		std::cout << "layer " << i + 1 << " max weights: " << weights[i].maxCoeff()
+			      << " max biases: " << biases[i].maxCoeff() << '\n';
 }
 
 void Network::SGD(DataSet &dataSet, int epochs, int batchSize, double learningRate)
@@ -77,10 +109,9 @@ void Network::SGD(DataSet &dataSet, int epochs, int batchSize, double learningRa
 	while (epochs--)
 	{
 		std::cout << "Epochs left: " << epochs << '\n';
-		//dataSet.Shuffle(0, DataSet::TRAINING_COUNT);
+		dataSet.Shuffle(0, DataSet::TRAINING_COUNT);
 		for (int t = 0; t < DataSet::TRAINING_COUNT; t += batchSize)
 			UpdateMiniBatch(dataSet, t, batchSize, learningRate);
-		PrintMaxLayers();
 		Tester::Analyze(dataSet, *this);
 	}
 }
@@ -96,12 +127,9 @@ void Network::UpdateMiniBatch(const DataSet &batch,
 		batchNablaB[i].setZero();
 	}
 
-	std::vector<int> counter(10);
-
 	for (int i = batchStart; i < batchStart + batchSize; i++)
 	{
 		Backprop(batch, i, batch._labels[i]);
-		counter[batch._labels[i]]++;
 
 		for (int j = 0; j < NumLayers() - 1; j++)
 		{
@@ -110,23 +138,11 @@ void Network::UpdateMiniBatch(const DataSet &batch,
 		}
 	}
 
-	//std::cout << "Batch set:\n";
-	//for (int i = 0; i < 10; i++)
-		//std::cout << i << " -> " << counter[i] << '\n';
-	//std::getchar();
-
 	for (int i = 0; i < NumLayers() - 1; i++)
 	{
 		weights[i] -= (learningRate / batchSize) * batchNablaW[i];
 		biases[i]  -= (learningRate / batchSize) * batchNablaB[i];
 	}
-}
-
-Network::DVectorV CostDerivative(const Network::DVectorV &networkOut,
-	const Network::DVectorV &expectedOut)
-{
-	Network::DVectorV ret = networkOut - expectedOut;
-	return ret;
 }
 
 double Cost(const Network::DVectorV &networkOut,
@@ -153,7 +169,8 @@ void Network::Backprop(const DataSet &batch,
 	}
 
 	/* Backpropagation */
-	Network::DVectorV cd = CostDerivative(activations.back(), batch.ToVector(output));
+	Network::DVectorV cd = CostDerivative(activations.back(), batch.ToVector(output), *this);
+
 	Network::DVectorV delta = cd.cwiseProduct(zs.back().unaryExpr(&Math::SigmoidPrimeUn));
 
 	nablaB.back() = delta;
@@ -161,13 +178,26 @@ void Network::Backprop(const DataSet &batch,
 
 	Network::DMatrix wtd;
 
-	// i = 0
 	for (int i = NumLayers() - 3; i > -1; i--)
 	{
 		wtd = weights[i + 1].transpose() * delta;
 		delta = wtd.cwiseProduct(zs[i].unaryExpr(&Math::SigmoidPrimeUn));
+
 		if (i)
 			nablaB[i] = delta;
+
 		nablaW[i] = delta * activations[i].transpose();
+
+		if (IsRegularized())
+			nablaW[i] += (lambda / NumLayers()) * weights[i];
 	}
+}
+
+double Network::GetSum() const
+{
+}
+
+bool Network::IsRegularized() const
+{
+	return lambda < std::numeric_limits<double>::epsilon();
 }

@@ -14,15 +14,20 @@ int main()
 
 	dataSet.Load(DataSet::TRAINING_IMAGES, DataSet::TRAINING_LABELS);
 
-	for(;;)
-	{
-		Network net = Network({ 784, 30, 10 });
-		net.SGD(dataSet, 30, 10, 3.0);
-		//Tester::Analyze(dataSet, net);
-	}
+	Network net = Network({ 784, 30, 10 }, 
+		[](const Network::DVectorV &a, 
+			const Network::DVectorV &b, 
+			const Network &net) -> Network::DVectorV 
+		{ 
+			return a - b; 
+		}, 0.1);
+	net.SGD(dataSet, 30, 10, 3.0);
+	Tester::Analyze(dataSet, net);
 
 	std::cout << "\nFinished...\n";
 	std::getchar();
 	return 0;
 }
+
+
 
