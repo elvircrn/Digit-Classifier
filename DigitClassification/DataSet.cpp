@@ -67,6 +67,7 @@ void DataSet::LoadLabels(std::string labelsLocation)
 	std::ifstream file(labelsLocation, std::ios::binary);
 	file.open(labelsLocation, std::ios::binary);
 	std::vector<int> counter(10);
+	_categoryCount = 10;
 
 	if (file.is_open())
 	{
@@ -127,7 +128,6 @@ int DataSet::GetLabel(int index) const
 DataSet::DataSet()
 {
 	Init();
-	_dataSize = TOTAL_IMAGES_COUNT;
 }
 
 DataSet::DataSet(int __dataSize)
@@ -200,7 +200,7 @@ DataSet::Data DataSet::operator[](const int index) const
 
 Eigen::Matrix<double, Eigen::Dynamic, 1> DataSet::ToVector(unsigned char x) const
 {
-	auto result = Eigen::Matrix<double, Eigen::Dynamic, 1>(10, 1);
+	auto result = Eigen::Matrix<double, Eigen::Dynamic, 1>(CategoryCount(), 1);
 	result.setZero();
 	result(x) = 1;
 	return result;

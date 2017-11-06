@@ -3,6 +3,7 @@
 #include "stdafx.h"
 #include <Eigen/Core>
 
+using std::vector;
 
 class DataSet
 {
@@ -11,6 +12,8 @@ private:
 
 protected:
 	int _dataSize, _imgWidth, _imgHeight, _imgCount;
+	int _trainingCount, _validationCount;
+	int _categoryCount;
 
 
 	void Init();
@@ -21,10 +24,6 @@ protected:
 public:
 	std::vector<unsigned char> _data, _labels;
 
-	static constexpr int TRAINING_COUNT		= 50000;
-	static constexpr int VALIDATION_COUNT   = 10000;
-	static constexpr int TOTAL_IMAGES_COUNT = 60000;
-	
 	typedef std::pair<std::vector<unsigned char>::const_iterator, 
 					  std::vector<unsigned char>::const_iterator> Data;
 
@@ -44,9 +43,19 @@ public:
 	int DataSize() const;
 	int PixelCount() const;
 	int GetLabel(int) const;
+	int TrainingCount() const { return _trainingCount; }
+	int ValidationCount() const { return _validationCount; }
+	void TrainingCount(int __trainingCount) { _trainingCount = __trainingCount; }
+	void ValidationCount(int __validationCount) { _validationCount = __validationCount; }
+
+	void SetData(const vector<unsigned char> &__data) { _data = __data; }
+	void SetLabels(const vector<unsigned char> &__labels) { _labels = __labels; }
+
+	int CategoryCount() const { return _categoryCount; }
+	void CategoryCount(int __categoryCount) { _categoryCount = __categoryCount; }
 	#pragma endregion
 
-	void Load(std::string, std::string, int = TOTAL_IMAGES_COUNT);
+	void Load(std::string, std::string, int = 60000);
 	unsigned char GetPixel(int, int) const;
 	void Shuffle(int, int);
 	Eigen::Matrix<double, Eigen::Dynamic, 1> ToVector(unsigned char) const;
@@ -54,4 +63,6 @@ public:
 	Eigen::Matrix<double, Eigen::Dynamic, 1> GetInputVector(int) const;
 
 	DataSet::Data operator[] (const int index) const;
+
+	friend class DataSetParser;
 };

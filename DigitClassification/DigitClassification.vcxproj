@@ -143,6 +143,7 @@
   <ItemGroup>
     <ClInclude Include="Clasifier.h" />
     <ClInclude Include="DataSet.h" />
+    <ClInclude Include="DataSetParser.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="Network.h" />
@@ -153,6 +154,7 @@
   <ItemGroup>
     <ClCompile Include="Clasifier.cpp" />
     <ClCompile Include="DataSet.cpp" />
+    <ClCompile Include="DataSetParser.cpp" />
     <ClCompile Include="DigitClassification.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="Math.cpp" />

@@ -29,8 +29,8 @@ int Tester::GetConclusion(const Network::DVectorV &v)
 void Tester::Analyze(const DataSet &testSet, const Network &network)
 {
 	int passed = 0;
-	std::vector<int> counter(10);
-	for (int i = DataSet::TRAINING_COUNT; i < DataSet::TOTAL_IMAGES_COUNT; i++)
+	std::vector<int> counter(testSet.CategoryCount());
+	for (int i = testSet.TrainingCount(); i < testSet.ImageCount(); i++)
 	{
 		//std::cout << "input set\n" << testSet.GetInputVector(i) << "\n\n";
 		Network::DVectorV output = network.FeedForward(testSet.GetInputVector(i));
@@ -39,7 +39,7 @@ void Tester::Analyze(const DataSet &testSet, const Network &network)
 		counter[conclusion]++;
 		//std::cout << "(" << conclusion << ", " << testSet.GetLabel(i) << ")\n";
 	}
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < testSet.CategoryCount(); i++)
 		std::cout << i << " -> " << counter[i] << '\n';
-	std::cout << "Accuracy: " << (passed / (double)DataSet::VALIDATION_COUNT) * 100.0 << "%\n";
+	std::cout << "Accuracy: " << (passed / (double)testSet.ValidationCount()) * 100.0 << "%\n";
 }

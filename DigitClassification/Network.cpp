@@ -109,8 +109,8 @@ void Network::SGD(DataSet &dataSet, int epochs, int batchSize, double learningRa
 	while (epochs--)
 	{
 		std::cout << "Epochs left: " << epochs << '\n';
-		dataSet.Shuffle(0, DataSet::TRAINING_COUNT);
-		for (int t = 0; t < DataSet::TRAINING_COUNT; t += batchSize)
+		dataSet.Shuffle(0, dataSet.TrainingCount());
+		for (int t = 0; t < dataSet.TrainingCount(); t += batchSize)
 			UpdateMiniBatch(dataSet, t, batchSize, learningRate);
 		Tester::Analyze(dataSet, *this);
 	}
@@ -195,6 +195,7 @@ void Network::Backprop(const DataSet &batch,
 
 double Network::GetSum() const
 {
+	return 0.0;
 }
 
 bool Network::IsRegularized() const
